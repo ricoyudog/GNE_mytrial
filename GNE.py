@@ -41,12 +41,9 @@ train_dataset = datasets.MNIST(root='dataset/', train=True, transform=GraphTrans
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True , collate_fn=CollateFn(device))
 test_dataset = datasets.MNIST(root='dataset/', train=False, transform=GraphTransform(device), download=False)
 test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True,collate_fn=CollateFn(device))
-vis_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=True)
 
 
-image, target = train_dataset[0]
 
-photo = image[0]
 
 
 
@@ -176,8 +173,8 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 
 
-
-for epoch in range(1):
+start_time = time.time()
+for epoch in range(num_epochs):
 
     for i, (adj, features, masks, batch_labels) in enumerate(train_loader):
         # input = feature[1].view(784,1)
@@ -195,6 +192,7 @@ for epoch in range(1):
 
         loss_val = F.nll_loss(output, batch_labels)
         acc_val = accuracy(output, batch_labels)
+
         print('Epoch: {:04d}'.format(epoch+1),
               'loss_train: {:.4f}'.format(loss_train.item()),
               'acc_train: {:.4f}'.format(acc_train.item()),
@@ -207,7 +205,7 @@ for epoch in range(1):
 t_total = time.time()
 
 print("Optimization Finished!")
-print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
+print("Total time elapsed: {:.4f}s".format(time.time() - start_time))
 
 
 
@@ -223,13 +221,14 @@ def check_accuracy(loader, model):
     model.eval()
 
     with torch.no_grad():
-        for x, y in loader:
-            x = x.to(device=device)
-            y = y.to(device=device)
+        for adj, features, masks, batch_labels in loader:
+            adj = adj.to(device=device)
+            features = features.to(device=device)
+            batch_labels = batch_labels.to(device=device)
 
-            test_scores = model(x)
+            test_scores = model(features, adj)
             _, predictions = test_scores.max(1)
-            num_correct += (predictions == y).sum()
+            num_correct += (predictions == batch_labels).sum()
             num_samples += predictions.size(0)
 
         print(f'Got {num_correct} / {num_samples} with accuracy {float(num_correct) / float(num_samples) * 100:.2f}')
