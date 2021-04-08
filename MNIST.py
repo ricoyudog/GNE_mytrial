@@ -57,7 +57,7 @@ class GraphTransform:
     def __init__(self, device):
         self.adj = adj_head(28)
         self.degree = degree_(self.adj,28)
-        self.degree = np.where(self.degree>0, np.float_power(self.degree,-1/2),0)
+        self.degree = np.where(self.degree>0, np.float_power(self.degree,-0.5),0)
         self.adj = np.dot(self.degree,self.adj)
         self.adj = np.dot(self.adj,self.degree)
 

@@ -8,6 +8,9 @@ from torch.nn.modules.module import Module
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
+
+#GCN  A*X*W as the ppt teaching, From Pygcn
 class GraphConvolution(Module):
     """
     Simple GCN layer, similar to https://arxiv.org/abs/1609.02907
@@ -18,13 +21,13 @@ class GraphConvolution(Module):
         self.use_bn = use_bn
         self.in_features = in_features
         self.out_features = out_features
-        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+        self.weight = Parameter(torch.FloatTensor(in_features, out_features))   # create W
         self.bias = bias
 
 
     def forward(self, input, adj):
-        support = torch.matmul(adj,input)
-        output = torch.matmul(support,self.weight)
+        support = torch.matmul(adj,input) # A*X
+        output = torch.matmul(support,self.weight) # A*X*W
 
         if self.use_bn:
             self.bn = nn.BatchNorm1d(output.size(1)).to(device)
@@ -43,20 +46,15 @@ class GraphConvolution(Module):
 
 
 class BatchedDiffPool(Module):
-    def __init__(self, nfeat, nnext, nhid, is_final=False):
+    def __init__(self, nfeat, nnext, nhid):
         super(BatchedDiffPool, self).__init__()
-        self.is_final = is_final
         self.embed = GraphConvolution(nfeat, nhid, use_bn=True)
         self.assign_mat = GraphConvolution(nfeat, nnext, use_bn=True)
         self.log = {}
-        self.link_pred_loss = 0
-        self.entropy_loss = 0
 
-    def forward(self, x, adj, mask=None, log=False):
-        z_l = self.embed(x, adj)
-        s_l = F.softmax(self.assign_mat(x, adj), dim=-1)
-        if log:
-            self.log['s'] = s_l.cpu().numpy()
-        xnext = torch.matmul(s_l.transpose(-1, -2), z_l)
-        adjnext = (s_l.transpose(-1, -2)).matmul(adj).matmul(s_l)
-        return xnext, adjnext
+    def forward(self, x, adj):
+        z = self.embed(x, adj)   # GET Embedding_matrix, Last GCN(x,adj)
+        s = F.softmax(self.assign_mat(x, adj), dim=-1)  # GET assign_matrix,softmax(GCN(x,adj))
+        x_next = torch.matmul(s.transpose(-1, -2), z)  # Transpose(S) * Z
+        adj_next = (s.transpose(-1, -2)).matmul(adj).matmul(s)  # Transpose(S) * Z * (S)
+        return x_next, adj_next
