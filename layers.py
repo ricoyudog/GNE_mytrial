@@ -16,32 +16,26 @@ class GraphConvolution(Module):
     Simple GCN layer, similar to https://arxiv.org/abs/1609.02907
     """
 
-    def __init__(self, in_features, out_features, bias=False, use_bn=False):
+    def __init__(self, in_features, out_features, use_bn=False):
         super(GraphConvolution, self).__init__()
         self.use_bn = use_bn
         self.in_features = in_features
         self.out_features = out_features
         self.weight = Parameter(torch.FloatTensor(in_features, out_features))   # create W
-        self.bias = bias
+
 
 
     def forward(self, input, adj):
-        support = torch.matmul(adj,input) # A*X
-        output = torch.matmul(support,self.weight) # A*X*W
+        support = torch.matmul(adj,input)  # A*X
+        output = torch.matmul(support,self.weight)  # A*X*W
 
         if self.use_bn:
             self.bn = nn.BatchNorm1d(output.size(1)).to(device)
             output = self.bn(output)
 
-        if self.bias is not None:
-            return output + self.bias
-        else:
-            return output
+        return output
 
-    def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_features) + ' -> ' \
-               + str(self.out_features) + ')'
+
 
 
 

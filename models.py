@@ -6,7 +6,7 @@ from layers import GraphConvolution, BatchedDiffPool
 
 # In total model seting part, same as the requirment output
 class GCN(nn.Module):
-    def __init__(self, nfeat, nhid, nclass):
+    def __init__(self):
         super(GCN, self).__init__()
 
         self.gc1 = GraphConvolution(1, 256)

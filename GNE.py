@@ -62,7 +62,7 @@ def degree_(adj,m):
     M = m**2
     degree_matrix = np.zeros((M,M),dtype=int)
     for i in range(lenghth):
-        degree = sum(adj[i])
+        degree = sum(adj[i])+1
         degree_matrix[i][i] = degree
         dia = dia + m + 1
 
@@ -74,6 +74,7 @@ def degree_(adj,m):
 
 
 #create graph
+
 adj = adj_head(28)
 degree = degree_(adj,28)
 
@@ -108,9 +109,7 @@ def accuracy(output, labels):
 
 
 # model creation and loss seting
-model = GCN(nfeat=1,
-            nhid=256,
-            nclass=10).to(device)
+model = GCN().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -130,7 +129,7 @@ for epoch in range(num_epochs):
 
 
         output = model(features, adj)
-        loss_train = criterion(output, batch_labels)
+        loss_train = F.nll_loss(output, batch_labels)
         acc_train = accuracy(output, batch_labels)
 
         optimizer.zero_grad()
@@ -184,8 +183,6 @@ def check_accuracy(loader, model):
             num_samples += predictions.size(0)
 
         print(f'Got {num_correct} / {num_samples} with accuracy {float(num_correct) / float(num_samples) * 100:.2f}')
-
-
 
     return test_scores
 

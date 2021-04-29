@@ -22,9 +22,7 @@ from torchvision import transforms
 import networkx as nx
 
 def adj_head(m):
-    '''
-    To create adjacency matrix as per Defferrard et al. 2016
-    '''
+
     M = m**2
 
     adj_matrix = np.zeros((M,M),dtype=int)
@@ -46,7 +44,7 @@ def degree_(adj,m):
     M = m**2
     degree_matrix = np.zeros((M,M),dtype=int)
     for i in range(lenghth):
-        degree = sum(adj[i])
+        degree = sum(adj[i])+1
         degree_matrix[i][i] = degree
         dia = dia + m + 1
 
